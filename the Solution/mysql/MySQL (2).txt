@@ -1,0 +1,85 @@
+-- Create the device table
+CREATE TABLE device (
+  id INT PRIMARY KEY,
+  longitude DECIMAL(12, 8),
+  latitude DECIMAL(12, 8)
+);
+
+-- Create the sensor table
+CREATE TABLE sensor (
+  id INT PRIMARY KEY,
+  device_id INT,
+  sensor_name VARCHAR(20),
+  FOREIGN KEY (device_id) REFERENCES device(id)
+);
+
+-- Create the sensor_reading table
+CREATE TABLE sensor_reading (
+  sequence_num INT PRIMARY KEY AUTO_INCREMENT,
+  sensor_id INT,
+  reading DECIMAL(10, 2),
+  reading_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (sensor_id) REFERENCES sensor(id)
+);
+
+
+delimiter //
+
+create procedure insertintosensor(sensor_id int, reading decimal(10, 2))
+begin
+  -- insert the new row into the 'sensor' table
+  insert into sensor_reading (sensor_id, reading)
+  values (sensor_id, reading);
+
+  -- get the row count
+  select count(*) into @row_count from sensor_reading;
+
+  -- delete the oldest row if the table has more than 10 rows
+  while @row_count > 100 do
+    delete from sensor_reading order by sequence_num limit 1;
+    select count(*) into @row_count from sensor_reading;
+  end while;
+end//
+
+delimiter ;
+
+
+
+
+
+insert into device (id, longitude, latitude)
+values
+  (1, 123.45678901, 45.67891234),
+  (2, 98.76543210, 12.34567890),
+  (3, 87.65432109, 23.45678901);
+
+
+
+insert into sensor(id,device_id,sensor_name)
+values
+(1,1,'temperature sensor'),
+(2,2,'Gas sensor'),
+(3,1,'dioxide sensor');
+
+
+
+call insertintosensor(1, 25.5);
+call insertintosensor(1, 26.2);
+
+call insertintosensor(2, 1000);
+call insertintosensor(2, 980);
+
+call insertintosensor(2, 60);
+call insertintosensor(3, 23);
+
+call insertintosensor(2, 1000);
+call insertintosensor(2, 980);
+
+call insertintosensor(2, 60);
+call insertintosensor(2, 60);
+
+call insertintosensor(3, 70.5);
+call insertintosensor(3, 100);
+
+select * from sensor_reading
+

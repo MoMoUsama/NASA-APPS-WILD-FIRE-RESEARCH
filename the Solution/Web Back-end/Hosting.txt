@@ -1,0 +1,3 @@
+ftp://smart-iot-home.freevar.com
+smart-iot-home.freevar.com
+123456789
